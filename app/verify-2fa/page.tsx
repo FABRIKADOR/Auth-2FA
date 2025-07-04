@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Cloud, Shield, ArrowLeft } from "lucide-react"
 
 export default function Verify2FAPage() {
   const [token, setToken] = useState("")
@@ -54,13 +55,13 @@ export default function Verify2FAPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Error de verificación")
+        throw new Error(data.error || "Verification error")
       }
 
       if (data.valid) {
         router.push("/dashboard")
       } else {
-        setError("Código inválido. Intenta nuevamente.")
+        setError("Invalid code. Please try again.")
       }
     } catch (error: any) {
       setError(error.message)
@@ -79,71 +80,76 @@ export default function Verify2FAPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Efectos de fondo */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <Cloud className="w-12 h-12 text-blue-600" />
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">Two-Factor Authentication</h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Enter the verification code from your authenticator app
+        </p>
       </div>
 
-      <Card className="w-full max-w-md bg-black/80 border-2 border-pink-400 shadow-2xl shadow-pink-400/50 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
-            VERIFICACIÓN 2FA
-          </CardTitle>
-          <div className="text-pink-300 text-sm font-mono">{"> CÓDIGO DE AUTENTICACIÓN REQUERIDO <"}</div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleVerify} className="space-y-6">
-            <div className="text-center space-y-4">
-              <div className="text-cyan-300 font-mono text-sm">
-                Ingresa el código de 6 dígitos de tu aplicación autenticadora
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-center space-x-2">
+              <Shield className="w-5 h-5 text-blue-600" />
+              <span>Verification Required</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="py-6">
+            <form onSubmit={handleVerify} className="space-y-6">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-4">Please enter the 6-digit code from your authenticator app</p>
+
+                <div>
+                  <Label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-2">
+                    Verification Code
+                  </Label>
+                  <Input
+                    id="token"
+                    type="text"
+                    value={token}
+                    onChange={(e) => setToken(formatToken(e.target.value))}
+                    required
+                    maxLength={7} // 6 dígitos + 1 espacio
+                    className="text-center text-2xl tracking-widest"
+                    placeholder="000 000"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="token" className="text-pink-300 font-mono text-sm">
-                  CÓDIGO_2FA
-                </Label>
-                <Input
-                  id="token"
-                  type="text"
-                  value={token}
-                  onChange={(e) => setToken(formatToken(e.target.value))}
-                  required
-                  maxLength={7} // 6 dígitos + 1 espacio
-                  className="bg-gray-900/50 border-pink-400 text-pink-100 placeholder-pink-500/50 focus:border-cyan-400 focus:ring-cyan-400/50 font-mono text-center text-2xl tracking-widest"
-                  placeholder="000 000"
-                />
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div className="text-sm text-red-700">{error}</div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  disabled={loading || token.replace(/\s/g, "").length !== 6}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {loading ? "Verifying..." : "Verify Code"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/login")}
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Sign In</span>
+                </Button>
               </div>
-            </div>
-
-            {error && (
-              <div className="text-red-400 text-sm font-mono bg-red-900/20 border border-red-400/50 rounded p-2 text-center">
-                ERROR: {error}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <Button
-                type="submit"
-                disabled={loading || token.replace(/\s/g, "").length !== 6}
-                className="w-full bg-gradient-to-r from-pink-500 to-cyan-500 hover:from-pink-600 hover:to-cyan-600 text-black font-bold py-3 text-lg shadow-lg shadow-pink-400/50 hover:shadow-cyan-400/50 transition-all duration-300 font-mono"
-              >
-                {loading ? "VERIFICANDO..." : "VERIFICAR CÓDIGO"}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push("/login")}
-                className="w-full border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 font-mono"
-              >
-                VOLVER AL LOGIN
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

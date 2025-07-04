@@ -8,7 +8,8 @@ import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Cloud, Mail, Lock } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -58,93 +59,92 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Fondo animado estilo retro */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-cyan-500/20 to-pink-500/20 animate-pulse"></div>
-        <div className="grid-pattern absolute inset-0"></div>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center">
+          <Cloud className="w-12 h-12 text-blue-600" />
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">Sign in to your account</h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Or{" "}
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            create a new account
+          </Link>
+        </p>
       </div>
 
-      <Card className="w-full max-w-md bg-black/80 border-2 border-cyan-400 shadow-2xl shadow-cyan-400/50 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
-            CYBER LOGIN
-          </CardTitle>
-          <div className="text-cyan-300 text-sm font-mono">{"> SISTEMA DE AUTENTICACIÓN <"}</div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-cyan-300 font-mono text-sm">
-                EMAIL_ADDRESS
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="bg-gray-900/50 border-cyan-400 text-cyan-100 placeholder-cyan-500/50 focus:border-pink-400 focus:ring-pink-400/50 font-mono"
-                placeholder="usuario@cyber.net"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-cyan-300 font-mono text-sm">
-                PASSWORD_KEY
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="bg-gray-900/50 border-cyan-400 text-cyan-100 placeholder-cyan-500/50 focus:border-pink-400 focus:ring-pink-400/50 font-mono"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-400 text-sm font-mono bg-red-900/20 border border-red-400/50 rounded p-2">
-                ERROR: {error}
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <Card className="shadow-lg">
+          <CardContent className="py-8 px-6">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email address
+                </Label>
+                <div className="mt-1 relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-10"
+                    placeholder="Enter your email"
+                  />
+                  <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                </div>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-black font-bold py-3 text-lg shadow-lg shadow-cyan-400/50 hover:shadow-pink-400/50 transition-all duration-300 font-mono"
-            >
-              {loading ? "CONECTANDO..." : "INICIAR SESIÓN"}
-            </Button>
+              <div>
+                <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+                <div className="mt-1 relative">
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pl-10"
+                    placeholder="Enter your password"
+                  />
+                  <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+              </div>
 
-            <div className="text-center space-y-2">
-              <div className="text-cyan-300 font-mono text-sm">¿No tienes cuenta?</div>
-              <Link
-                href="/register"
-                className="text-pink-400 hover:text-pink-300 font-mono text-sm underline transition-colors"
-              >
-                CREAR CUENTA
-              </Link>
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div className="text-sm text-red-700">{error}</div>
+                </div>
+              )}
+
+              <div>
+                <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700">
+                  {loading ? "Signing in..." : "Sign in"}
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">Need help?</span>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <Link href="/" className="text-sm text-blue-600 hover:text-blue-500">
+                  Back to home
+                </Link>
+              </div>
             </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <style jsx>{`
-        .grid-pattern {
-          background-image: 
-            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-          background-size: 50px 50px;
-          animation: grid-move 20s linear infinite;
-        }
-        
-        @keyframes grid-move {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
-        }
-      `}</style>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

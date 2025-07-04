@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Cloud, Shield, CheckCircle, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 
 export default function Setup2FAPage() {
@@ -44,7 +45,7 @@ export default function Setup2FAPage() {
 
         if (profileError) {
           console.error("Error obteniendo perfil:", profileError)
-          setError("Error obteniendo información del usuario")
+          setError("Error getting user information")
           return
         }
 
@@ -53,7 +54,7 @@ export default function Setup2FAPage() {
         }
       } catch (error) {
         console.error("Error en getUser:", error)
-        setError("Error de conexión")
+        setError("Connection error")
       }
     }
     getUser()
@@ -77,7 +78,7 @@ export default function Setup2FAPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Error configurando 2FA")
+        throw new Error(data.error || "Error setting up 2FA")
       }
 
       setSecret(data.secret)
@@ -98,8 +99,6 @@ export default function Setup2FAPage() {
     setError("")
 
     try {
-      console.log("Verificando código para usuario:", user.id)
-
       const response = await fetch("/api/2fa/verify", {
         method: "POST",
         headers: {
@@ -112,10 +111,9 @@ export default function Setup2FAPage() {
       })
 
       const data = await response.json()
-      console.log("Respuesta de verificación:", data)
 
       if (!response.ok) {
-        throw new Error(data.error || "Error de verificación")
+        throw new Error(data.error || "Verification error")
       }
 
       if (data.valid) {
@@ -127,11 +125,10 @@ export default function Setup2FAPage() {
           throw error
         }
 
-        console.log("2FA activado exitosamente")
         setIs2FAEnabled(true)
         setStep("verify")
       } else {
-        setError("Código inválido. Verifica que el código sea correcto y no haya expirado.")
+        setError("Invalid code. Please check that the code is correct and hasn't expired.")
       }
     } catch (error: any) {
       console.error("Error en verificación:", error)
@@ -176,162 +173,147 @@ export default function Setup2FAPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Efectos de fondo retro */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-gradient-to-r from-cyan-500/30 to-pink-500/30 rounded-full blur-3xl animate-spin-slow"></div>
-          <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-gradient-to-r from-pink-500/30 to-yellow-500/30 rounded-full blur-3xl animate-spin-slow delay-2000"></div>
-        </div>
-      </div>
-
-      <Card className="w-full max-w-lg bg-black/80 border-2 border-yellow-400 shadow-2xl shadow-yellow-400/50 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
-            CONFIGURACIÓN 2FA
-          </CardTitle>
-          <div className="text-yellow-300 text-sm font-mono">{"> SISTEMA DE SEGURIDAD AVANZADO <"}</div>
-        </CardHeader>
-        <CardContent>
-          {step === "initial" && (
-            <div className="space-y-6">
-              {is2FAEnabled ? (
-                <div className="text-center space-y-4">
-                  <div className="text-green-400 font-mono text-lg">✓ 2FA ACTIVADO</div>
-                  <div className="text-cyan-300 text-sm">
-                    Tu cuenta está protegida con autenticación de dos factores
-                  </div>
-                  <Button
-                    onClick={handleDisable2FA}
-                    disabled={loading}
-                    variant="destructive"
-                    className="w-full font-mono"
-                  >
-                    {loading ? "DESACTIVANDO..." : "DESACTIVAR 2FA"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="text-center space-y-2">
-                    <div className="text-yellow-300 text-lg font-mono">🛡️ PROTEGE TU CUENTA</div>
-                    <div className="text-cyan-300 text-sm font-mono text-center">
-                      La autenticación de dos factores añade una capa extra de seguridad a tu cuenta
-                    </div>
-                  </div>
-
-                  <div className="bg-yellow-900/20 border border-yellow-400/50 rounded p-4 space-y-2">
-                    <div className="text-yellow-300 font-mono text-sm font-bold">BENEFICIOS:</div>
-                    <ul className="text-cyan-300 font-mono text-xs space-y-1">
-                      <li>• Protección contra acceso no autorizado</li>
-                      <li>• Compatible con Google Authenticator</li>
-                      <li>• Códigos que cambian cada 30 segundos</li>
-                      <li>• Funciona sin conexión a internet</li>
-                    </ul>
-                  </div>
-
-                  <Button
-                    onClick={handleEnable2FA}
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-pink-500 hover:from-yellow-600 hover:to-pink-600 text-black font-bold py-3 text-lg shadow-lg shadow-yellow-400/50 hover:shadow-pink-400/50 transition-all duration-300 font-mono"
-                  >
-                    {loading ? "CONFIGURANDO..." : "ACTIVAR 2FA"}
-                  </Button>
-
-                  <Button
-                    onClick={() => router.push("/dashboard")}
-                    variant="outline"
-                    className="w-full border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 font-mono"
-                  >
-                    CONFIGURAR MÁS TARDE
-                  </Button>
-                </div>
-              )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Button variant="ghost" onClick={() => router.push("/dashboard")} className="mr-4">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <Cloud className="w-8 h-8 text-blue-600 mr-3" />
+              <h1 className="text-xl font-semibold text-gray-900">Two-Factor Authentication</h1>
             </div>
-          )}
+          </div>
+        </div>
+      </header>
 
-          {step === "setup" && (
-            <div className="space-y-6">
-              <div className="text-center space-y-4">
-                <div className="text-yellow-300 font-mono text-sm">
-                  1. Escanea este código QR con tu app autenticadora
-                </div>
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-xl">
+              <Shield className="w-6 h-6 text-blue-600" />
+              <span>Security Settings</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {step === "initial" && (
+              <div className="space-y-6">
+                {is2FAEnabled ? (
+                  <div className="text-center space-y-4">
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="text-lg font-medium text-green-900">2FA Enabled</span>
+                      </div>
+                      <p className="text-sm text-green-700">Your account is protected with two-factor authentication</p>
+                    </div>
+                    <Button onClick={handleDisable2FA} disabled={loading} variant="destructive" className="w-full">
+                      {loading ? "Disabling..." : "Disable 2FA"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Secure Your Account</h3>
+                      <p className="text-gray-600">
+                        Two-factor authentication adds an extra layer of security to your account
+                      </p>
+                    </div>
 
-                {qrCodeUrl && (
-                  <div className="flex justify-center p-4 bg-white rounded-lg">
-                    <Image src={qrCodeUrl || "/placeholder.svg"} alt="QR Code para 2FA" width={200} height={200} />
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                      <h4 className="text-sm font-medium text-blue-900 mb-2">Benefits:</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Protection against unauthorized access</li>
+                        <li>• Compatible with Google Authenticator</li>
+                        <li>• Codes change every 30 seconds</li>
+                        <li>• Works offline</li>
+                      </ul>
+                    </div>
+
+                    <Button
+                      onClick={handleEnable2FA}
+                      disabled={loading}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      {loading ? "Setting up..." : "Enable 2FA"}
+                    </Button>
                   </div>
                 )}
-
-                <div className="text-cyan-300 font-mono text-xs">O ingresa manualmente: {secret}</div>
-
-                <div className="text-yellow-300 font-mono text-sm">2. Ingresa el código generado para verificar</div>
               </div>
+            )}
 
-              <form onSubmit={handleVerifyAndEnable} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="verification-token" className="text-yellow-300 font-mono text-sm">
-                    CÓDIGO_VERIFICACIÓN
-                  </Label>
-                  <Input
-                    id="verification-token"
-                    type="text"
-                    value={verificationToken}
-                    onChange={(e) => setVerificationToken(formatToken(e.target.value))}
-                    required
-                    maxLength={7}
-                    className="bg-gray-900/50 border-yellow-400 text-yellow-100 placeholder-yellow-500/50 focus:border-pink-400 focus:ring-pink-400/50 font-mono text-center text-2xl tracking-widest"
-                    placeholder="000 000"
-                  />
+            {step === "setup" && (
+              <div className="space-y-6">
+                <div className="text-center space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Scan QR Code</h3>
+                  <p className="text-sm text-gray-600">1. Scan this QR code with your authenticator app</p>
+
+                  {qrCodeUrl && (
+                    <div className="flex justify-center p-6 bg-white border border-gray-200 rounded-lg">
+                      <Image src={qrCodeUrl || "/placeholder.svg"} alt="QR Code for 2FA" width={200} height={200} />
+                    </div>
+                  )}
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+                    <p className="text-xs text-gray-600 mb-1">Or enter manually:</p>
+                    <code className="text-sm font-mono text-gray-900">{secret}</code>
+                  </div>
+
+                  <p className="text-sm text-gray-600">2. Enter the verification code to complete setup</p>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading || verificationToken.replace(/\s/g, "").length !== 6}
-                  className="w-full bg-gradient-to-r from-yellow-500 to-pink-500 hover:from-yellow-600 hover:to-pink-600 text-black font-bold py-3 text-lg shadow-lg shadow-yellow-400/50 hover:shadow-pink-400/50 transition-all duration-300 font-mono"
-                >
-                  {loading ? "VERIFICANDO..." : "VERIFICAR Y ACTIVAR"}
-                </Button>
-              </form>
-            </div>
-          )}
+                <form onSubmit={handleVerifyAndEnable} className="space-y-4">
+                  <div>
+                    <Label htmlFor="verification-token" className="block text-sm font-medium text-gray-700">
+                      Verification Code
+                    </Label>
+                    <Input
+                      id="verification-token"
+                      type="text"
+                      value={verificationToken}
+                      onChange={(e) => setVerificationToken(formatToken(e.target.value))}
+                      required
+                      maxLength={7}
+                      className="mt-1 text-center text-lg tracking-widest"
+                      placeholder="000 000"
+                    />
+                  </div>
 
-          {step === "verify" && (
-            <div className="text-center space-y-4">
-              <div className="text-green-400 font-mono text-2xl">✓ 2FA ACTIVADO EXITOSAMENTE</div>
-              <div className="text-cyan-300 text-sm">
-                Tu cuenta ahora está protegida con autenticación de dos factores
+                  <Button
+                    type="submit"
+                    disabled={loading || verificationToken.replace(/\s/g, "").length !== 6}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {loading ? "Verifying..." : "Verify and Enable"}
+                  </Button>
+                </form>
               </div>
-              <Button
-                onClick={() => router.push("/dashboard")}
-                className="w-full bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 text-black font-bold py-3 text-lg shadow-lg shadow-green-400/50 hover:shadow-cyan-400/50 transition-all duration-300 font-mono"
-              >
-                IR AL DASHBOARD
-              </Button>
-            </div>
-          )}
+            )}
 
-          {error && (
-            <div className="text-red-400 text-sm font-mono bg-red-900/20 border border-red-400/50 rounded p-2 text-center mt-4">
-              ERROR: {error}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {step === "verify" && (
+              <div className="text-center space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-md p-6">
+                  <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-green-900 mb-2">2FA Successfully Enabled</h3>
+                  <p className="text-sm text-green-700">Your account is now protected with two-factor authentication</p>
+                </div>
+                <Button onClick={() => router.push("/dashboard")} className="w-full bg-blue-600 hover:bg-blue-700">
+                  Go to Dashboard
+                </Button>
+              </div>
+            )}
 
-      <style jsx>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        .animate-spin-slow {
-          animation: spin-slow 20s linear infinite;
-        }
-        
-        .delay-2000 {
-          animation-delay: 2s;
-        }
-      `}</style>
+            {error && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="text-sm text-red-700">{error}</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
     </div>
   )
 }
