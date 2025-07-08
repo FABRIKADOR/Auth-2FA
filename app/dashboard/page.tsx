@@ -1,78 +1,118 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Cloud, Settings, LogOut, Shield, CheckCircle, XCircle, User, Mail } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { createClient } from "@/utils/supabase/client"
+import { useRouter } from "next/navigation"
+import {
+  User,
+  Shield,
+  Activity,
+  Clock,
+  Settings,
+  LogOut,
+  CheckCircle,
+  XCircle,
+  FileImage,
+  ArrowRight,
+} from "lucide-react"
+import Link from "next/link"
+
+interface UserProfile {
+  id: string
+  email: string
+  created_at: string
+  two_factor_enabled: boolean
+}
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    const getUser = async () => {
+    checkUser()
+  }, [])
+
+  const checkUser = async () => {
+    try {
       const {
-        data: { user },
+        data: { user: authUser },
+        error: authError,
       } = await supabase.auth.getUser()
-      if (!user) {
+
+      if (authError || !authUser) {
         router.push("/login")
         return
       }
-      setUser(user)
 
-      // Obtener perfil del usuario
-      const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+      // Obtener información del perfil
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", authUser.id)
+        .single()
 
-      setProfile(profile)
+      if (profileError) {
+        console.error("Error fetching profile:", profileError)
+      }
+
+      setUser({
+        id: authUser.id,
+        email: authUser.email || "",
+        created_at: authUser.created_at || "",
+        two_factor_enabled: profile?.two_factor_enabled || false,
+      })
+    } catch (error) {
+      console.error("Error checking user:", error)
+      router.push("/login")
+    } finally {
       setLoading(false)
     }
-    getUser()
-  }, [router, supabase])
+  }
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push("/login")
+    router.push("/")
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
+
+  if (!user) {
+    return null
+  }
+
+  const accountAge = Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24))
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Cloud className="w-8 h-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                onClick={() => router.push("/setup-2fa")}
-                variant="outline"
-                className="flex items-center space-x-2"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Settings</span>
+            <div className="flex items-center space-x-3">
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Configuración
               </Button>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign out</span>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
               </Button>
             </div>
           </div>
@@ -80,52 +120,48 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Welcome back!</h2>
-          <p className="text-gray-600">Manage your account and security settings</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">¡Bienvenido de vuelta!</h2>
+          <p className="text-gray-600">Gestiona tu cuenta y configuraciones de seguridad</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* User Information */}
+          {/* Account Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="w-5 h-5" />
-                <span>Account Information</span>
+                <span>Información de la Cuenta</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Email</p>
-                  <p className="text-sm text-gray-600">{user?.email}</p>
-                </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <p className="text-gray-900">{user.email}</p>
               </div>
-              <div className="flex items-center space-x-3">
-                <User className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">User ID</p>
-                  <p className="text-sm text-gray-600 font-mono">{user?.id}</p>
-                </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">ID de Usuario</label>
+                <p className="text-gray-600 text-sm font-mono break-all">{user.id}</p>
               </div>
-              <div className="flex items-center space-x-3">
-                <Shield className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Two-Factor Authentication</p>
-                  <div className="flex items-center space-x-2">
-                    {profile?.is_2fa_enabled ? (
-                      <>
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm text-green-600 font-medium">Enabled</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 text-red-500" />
-                        <span className="text-sm text-red-600 font-medium">Disabled</span>
-                      </>
-                    )}
-                  </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Autenticación de Dos Factores</label>
+                <div className="flex items-center space-x-2 mt-1">
+                  {user.two_factor_enabled ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        Habilitado
+                      </Badge>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 text-red-600" />
+                      <Badge variant="destructive" className="bg-red-100 text-red-800">
+                        Deshabilitado
+                      </Badge>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -136,44 +172,118 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="w-5 h-5" />
-                <span>Security Settings</span>
+                <span>Configuraciones de Seguridad</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Two-Factor Authentication</h4>
-                <p className="text-sm text-blue-700 mb-3">Add an extra layer of security to your account with 2FA.</p>
-                <Button onClick={() => router.push("/setup-2fa")} className="bg-blue-600 hover:bg-blue-700">
-                  {profile?.is_2fa_enabled ? "Manage 2FA" : "Enable 2FA"}
-                </Button>
+            <CardContent>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Autenticación de Dos Factores</h3>
+                <p className="text-blue-800 text-sm mb-4">Añade una capa extra de seguridad a tu cuenta con 2FA.</p>
+                <Link href="/setup-2fa">
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    {user.two_factor_enabled ? "Gestionar 2FA" : "Habilitar 2FA"}
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Statistics */}
+        {/* Gallery Section */}
         <div className="mt-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Account Statistics</h3>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileImage className="w-5 h-5 text-purple-600" />
+                <span>Galería de Arte</span>
+              </CardTitle>
+              <CardDescription>Gestiona tu colección personal de imágenes y obras de arte</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-purple-900 mb-2">Tu Galería Personal</h3>
+                    <p className="text-purple-800 text-sm mb-4">
+                      Sube, organiza y gestiona tus imágenes en tu galería privada. Las imágenes se almacenan de forma
+                      segura en Supabase Storage.
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-purple-700">
+                      <span>✨ Subida segura</span>
+                      <span>🎨 Metadatos completos</span>
+                      <span>📱 Responsive</span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <Link href="/gallery">
+                      <Button className="bg-purple-600 hover:bg-purple-700">
+                        <FileImage className="w-4 h-4 mr-2" />
+                        Abrir Galería
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Account Statistics */}
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Estadísticas de la Cuenta</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">1</div>
-                <div className="text-sm text-gray-600">Active Sessions</div>
+                <Activity className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-blue-600">1</div>
+                <div className="text-sm text-gray-600">Sesiones Activas</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">100%</div>
-                <div className="text-sm text-gray-600">Account Security</div>
+                <Shield className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-green-600">100%</div>
+                <div className="text-sm text-gray-600">Seguridad de la Cuenta</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
-                <div className="text-sm text-gray-600">Monitoring</div>
+                <Clock className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-purple-600">24/7</div>
+                <div className="text-sm text-gray-600">Monitoreo</div>
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Actividad Reciente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium">Inicio de sesión exitoso</p>
+                    <p className="text-xs text-gray-600">Hace unos minutos</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <User className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm font-medium">Cuenta creada</p>
+                    <p className="text-xs text-gray-600">
+                      Hace {accountAge} {accountAge === 1 ? "día" : "días"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
